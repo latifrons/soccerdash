@@ -12,7 +12,7 @@ import socket
 from websocket_server import WebsocketServer
 
 HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
-PORT = 1088  # Port to listen on (non-privileged ports are > 1023)
+PORT = 2088  # Port to listen on (non-privileged ports are > 1023)
 WS_PORT = 1099
 
 queue = Queue(maxsize=10000)
@@ -31,10 +31,10 @@ server = WebsocketServer(WS_PORT)
 # Called for every client connecting (after handshake)
 def new_client(client, server: WebsocketServer):
     print("New client connected and was given id %d" % client['id'])
-    for ll in l:
+    # for ll in l:
         # send old messages
-        ll = json.dumps(ll)
-        server.send_message(client, ll)
+        # ll = json.dumps(ll)
+        # server.send_message(client, ll)
 
 
 # Called for every client disconnecting
