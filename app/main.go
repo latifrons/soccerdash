@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/latifrons/soccerdash"
 	"github.com/sirupsen/logrus"
 	"time"
@@ -11,11 +12,15 @@ func main() {
 
 	r := soccerdash.Reporter{
 		Name:          "C1",
-		TargetAddress: "127.0.0.1:1088",
+		TargetAddress: "172.28.152.101:32010",
 	}
 
 	for {
-		r.Report("time", time.Now().Second(), false)
+		fmt.Println("xxx")
+		for i := 0; i < 10; i++ {
+			go r.Report("time", time.Now().Second(), false)
+		}
+
 		time.Sleep(time.Second)
 	}
 }

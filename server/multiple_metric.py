@@ -1,19 +1,11 @@
-import asyncio
-import datetime
-import json
-import random
 import socketserver
 from queue import Queue
 from threading import Thread
-
-import websockets
-import socket
-
 from websocket_server import WebsocketServer
 
-HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
-PORT = 2088  # Port to listen on (non-privileged ports are > 1023)
-WS_PORT = 1099
+HOST = '0.0.0.0'  # Standard loopback interface address (localhost)
+PORT = 8080  # Port to listen on (non-privileged ports are > 1023)
+WS_PORT = 8081
 
 queue = Queue(maxsize=10000)
 
@@ -26,7 +18,7 @@ l = [{"name": "C1", "global": False, "key": "time1", "value": 51},
      {"name": "C1", "global": False, "key": "time1", "value": 55},
      {"name": "C1", "global": False, "key": "time2", "value": 56}]
 
-server = WebsocketServer(WS_PORT)
+server = WebsocketServer(WS_PORT, host=HOST)
 
 # Called for every client connecting (after handshake)
 def new_client(client, server: WebsocketServer):

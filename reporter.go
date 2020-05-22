@@ -4,13 +4,18 @@ import (
 	"encoding/json"
 	"github.com/sirupsen/logrus"
 	"net"
+	"sync"
 	"time"
 )
 
 type Reporter struct {
-	Name          string
-	TargetAddress string
-	conn          net.Conn
+	Name            string
+	TargetAddress   string
+	conn            net.Conn
+	inited          bool
+	outgoingChannel chan *Message
+	quit            chan bool
+	lock            sync.Mutex
 }
 
 type Message struct {
@@ -37,17 +42,64 @@ func (r *Reporter) ensureConnection() {
 }
 
 func (r *Reporter) Report(key string, value interface{}, global bool) {
-	r.ensureConnection()
-	b, err := json.Marshal(Message{
+	if !r.inited {
+		r.lock.Lock()
+		if !r.inited {
+			r.init()
+		}
+		r.lock.Unlock()
+	}
+	msg := &Message{
 		Global: global,
 		Key:    key,
 		Value:  value,
 		Name:   r.Name,
-	})
-	if err != nil {
-		panic(err)
 	}
-	logrus.WithField("content", string(b)).Debug("sending content")
-	r.conn.Write(b)
-	r.conn.Write([]byte("\n"))
+
+	if len(r.outgoingChannel) < 5 {
+		r.outgoingChannel <- msg
+	}
+}
+
+func (r *Reporter) init() {
+	r.inited = true
+	r.outgoingChannel = make(chan *Message, 10)
+	r.quit = make(chan bool)
+	go r.Start()
+}
+
+func (r *Reporter) Start() {
+loop:
+	for {
+		select {
+		case <-r.quit:
+			break loop
+		case msg := <-r.outgoingChannel:
+			r.ensureConnection()
+			b, err := json.Marshal(msg)
+			if err != nil {
+				logrus.WithError(err).Warn("bad soccerdash format")
+			}
+
+			logrus.WithField("content", string(b)).Debug("sending content")
+			_, err = r.conn.Write(b)
+			if err != nil {
+				r.conn = nil
+				logrus.WithError(err).Debug("soccerdash server lost")
+				break
+			}
+
+			_, err = r.conn.Write([]byte("\n"))
+			if err != nil {
+				r.conn = nil
+				logrus.WithError(err).Debug("soccerdash server lost")
+				break
+			}
+		}
+	}
+
+}
+
+func (r *Reporter) Stop() {
+	r.quit <- true
 }
