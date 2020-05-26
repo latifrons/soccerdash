@@ -9,7 +9,7 @@ import (
 )
 
 type Reporter struct {
-	Name            string
+	Id              string
 	TargetAddress   string
 	conn            net.Conn
 	inited          bool
@@ -23,6 +23,10 @@ type Message struct {
 	Global bool        `json:"global"`
 	Key    string      `json:"key"`
 	Value  interface{} `json:"value"`
+}
+
+func (r *Reporter) Name() string {
+	return "reporter"
 }
 
 func (r *Reporter) ensureConnection() {
@@ -53,7 +57,7 @@ func (r *Reporter) Report(key string, value interface{}, global bool) {
 		Global: global,
 		Key:    key,
 		Value:  value,
-		Name:   r.Name,
+		Name:   r.Id,
 	}
 
 	if len(r.outgoingChannel) < 5 {
