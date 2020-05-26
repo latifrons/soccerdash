@@ -113,7 +113,9 @@
     }
 
     function connect() {
-        var ws = new WebSocket('ws://172.28.152.101:30011');
+        const urlParams = new URLSearchParams(window.location.search);
+
+        let ws = new WebSocket('ws://' + urlParams.get('url'));
         ws.onopen = function () {
             console.log("WebSocketClient connected");
         };

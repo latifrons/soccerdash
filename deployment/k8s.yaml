@@ -1,0 +1,40 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: soccerdash
+spec:
+  selector:
+    matchLabels:
+      app: soccerdash
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: soccerdash
+    spec:
+      containers:
+        - name: soccerdash
+          image: 172.28.152.101:5000/soccerdash:latest
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: ws
+              containerPort: 8081
+
+-------
+apiVersion: v1
+kind: Service
+metadata:
+  name: soccerdash-dev
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+    - port: 8081
+      targetPort: 8081
+      nodePort: 30021
+      name: ws
+  selector:
+    app: soccerdash-dev
