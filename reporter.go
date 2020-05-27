@@ -61,6 +61,7 @@ func (r *Reporter) Report(key string, value interface{}, global bool) {
 	}
 
 	if len(r.outgoingChannel) < 5 {
+		logrus.Warn("soccer dash message drop because of too many messages.")
 		r.outgoingChannel <- msg
 	}
 }
@@ -86,18 +87,20 @@ loop:
 			}
 
 			logrus.WithField("content", string(b)).Debug("sending content")
+			_ = r.conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
+
 			_, err = r.conn.Write(b)
 			if err != nil {
 				r.conn = nil
 				logrus.WithError(err).Debug("soccerdash server lost")
-				break
+				break // break select
 			}
-
+			_ = r.conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
 			_, err = r.conn.Write([]byte("\n"))
 			if err != nil {
 				r.conn = nil
 				logrus.WithError(err).Debug("soccerdash server lost")
-				break
+				break // break select
 			}
 		}
 	}
