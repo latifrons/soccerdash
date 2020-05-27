@@ -33,6 +33,9 @@
         .value {
             font-weight: bold;
         }
+        .cell{
+            word-break: break-all;
+        }
 
         .flash {
             font-family: 'JetbrainsMono', 'Consolas', 'Inconsolata', "Microsoft YaHei", 'Arial', sans-serif;
@@ -55,7 +58,7 @@
 <body>
 
 <div class="container-fluid">
-    <table id="mainTable" class="table">
+    <table id="mainTable" class="table" width="100%">
         <thead class="thead-dark">
         <tr id="theader">
             <th>Item</th>
@@ -79,7 +82,8 @@
             if (i === 0) {
                 cell.innerText = value;
             }
-            cell.className = "flash";
+            cell.classList.add("flash")
+            cell.classList.add("cell")
             row.appendChild(cell)
         });
         peers[value] = peerLength++;
@@ -94,6 +98,8 @@
 
         for (let i = 1; i <= peerLength; i++) {
             let cell = document.createElement("td");
+            cell.classList.add("flash")
+            cell.classList.add("cell")
             rowTr.appendChild(cell);
         }
         document.getElementById("tbody").appendChild(rowTr);
