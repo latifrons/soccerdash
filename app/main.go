@@ -11,7 +11,7 @@ func main() {
 	logrus.StandardLogger().Level = logrus.DebugLevel
 
 	r := soccerdash.Reporter{
-		Name:          "C1",
+		Id:            "C1",
 		TargetAddress: "172.28.152.101:32010",
 	}
 

@@ -60,8 +60,9 @@ func (r *Reporter) Report(key string, value interface{}, global bool) {
 		Name:   r.Id,
 	}
 
-	if len(r.outgoingChannel) < 5 {
+	if len(r.outgoingChannel) > 5 {
 		logrus.Warn("soccer dash message drop because of too many messages.")
+	} else {
 		r.outgoingChannel <- msg
 	}
 }
