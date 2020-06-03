@@ -11,6 +11,7 @@ import (
 type Reporter struct {
 	Id              string
 	TargetAddress   string
+	BufferSize      int
 	conn            net.Conn
 	inited          bool
 	outgoingChannel chan *Message
@@ -60,7 +61,7 @@ func (r *Reporter) Report(key string, value interface{}, global bool) {
 		Name:   r.Id,
 	}
 
-	if len(r.outgoingChannel) > 5 {
+	if len(r.outgoingChannel) > r.BufferSize {
 		logrus.Warn("soccer dash message drop because of too many messages.")
 	} else {
 		r.outgoingChannel <- msg
@@ -69,8 +70,12 @@ func (r *Reporter) Report(key string, value interface{}, global bool) {
 
 func (r *Reporter) init() {
 	r.inited = true
-	r.outgoingChannel = make(chan *Message, 10)
+	if r.BufferSize == 0 {
+		r.BufferSize = 20
+	}
+	r.outgoingChannel = make(chan *Message, r.BufferSize+10)
 	r.quit = make(chan bool)
+
 	go r.Start()
 }
 
