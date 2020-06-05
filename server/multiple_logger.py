@@ -12,14 +12,14 @@ import socket
 from websocket_server import WebsocketServer
 
 HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
-PORT = 1088  # Port to listen on (non-privileged ports are > 1023)
-WS_PORT = 1099
+PORT = 8082  # Port to listen on (non-privileged ports are > 1023)
+WS_PORT = 8083
 
 queue = Queue(maxsize=10000)
-l = [json.dumps({'level': 'info', 'message': '[0] test0'}),
-     json.dumps({'level': 'info', 'message': '[1] test1'}),
-     json.dumps({'level': 'info', 'message': '[2] test2'}),
-     json.dumps({'level': 'info', 'message': '[3] test3'})]
+l = [json.dumps({'level': 'info', 'message': '[0] test0', 'name': '0', 'value': {}, 'key': '0'}),
+     json.dumps({'level': 'info', 'message': '[1] test1', 'name': '1', 'value': {}, 'key': '1'}),
+     json.dumps({'level': 'info', 'message': '[2] test2', 'name': '2', 'value': {}, 'key': '2'}),
+     json.dumps({'level': 'info', 'message': '[3] test3', 'name': '3', 'value': {}, 'key': '3'})]
 server = WebsocketServer(WS_PORT)
 
 

@@ -84,9 +84,10 @@
         document.getElementById('pc' + i).innerText = '';
     }
 
-    function buildString(data) {
+    function buildString1(data) {
         delete data['@timestamp'];
         delete data['@version'];
+        delete data['global'];
 
         let level = data['level'].substring(0, 1);
         delete data['level'];
@@ -101,11 +102,33 @@
 
         });
         return s;
+    }
 
+    function buildString(data) {
+        if (data['key'] === "send") {
+            s = "S";
+        } else if (data['key'] === "receive") {
+            s = "R";
+        } else {
+            s = data['key']
+        }
+        s += " ";
+
+        s += JSON.stringify(data['value'])
+
+        // Object.keys(data['value']).sort().forEach(function (key) {
+        //     s += '<span class="key">' + key + '=</span>';
+        //     s += '<span class="value">' + data['value'][key] + ';</span>';
+        //
+        // });
+
+        return s
     }
 
     function connect() {
-        var ws = new WebSocket('ws://127.0.0.1:1099/');
+        const urlParams = new URLSearchParams(window.location.search);
+
+        let ws = new WebSocket('ws://' + urlParams.get('url'));
         ws.onopen = function () {
             console.log("WebSocketClient connected");
         };
@@ -118,7 +141,7 @@
                 return;
             }
 
-            let node = parseInt(data.message.substring(1, 2));
+            let node = parseInt(data.name.substring(data.name.length - 1, data.name.length));
 
             for (let i = 0; i < 4; i++) {
                 let logNode = document.createElement("SPAN");

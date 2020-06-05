@@ -12,6 +12,7 @@ type Reporter struct {
 	Id              string
 	TargetAddress   string
 	BufferSize      int
+	Logger          *logrus.Logger
 	conn            net.Conn
 	inited          bool
 	outgoingChannel chan *Message
@@ -36,10 +37,15 @@ func (r *Reporter) ensureConnection() {
 		if r.conn != nil {
 			break
 		}
-		logrus.WithField("server", r.TargetAddress).Debug("connecting to ws server")
+		if r.Logger != nil {
+			r.Logger.WithField("server", r.TargetAddress).Trace("connecting to ws server")
+		}
+
 		r.conn, err = net.DialTimeout("tcp", r.TargetAddress, time.Millisecond*5000)
 		if err == nil {
-			logrus.Debug("connected to ws server")
+			if r.Logger != nil {
+				logrus.Trace("connected to ws server")
+			}
 			break
 		}
 		time.Sleep(time.Second * 3)
@@ -62,7 +68,10 @@ func (r *Reporter) Report(key string, value interface{}, global bool) {
 	}
 
 	if len(r.outgoingChannel) > r.BufferSize {
-		logrus.Warn("soccer dash message drop because of too many messages.")
+		if r.Logger != nil {
+			r.Logger.Warn("soccer dash message drop because of too many messages.")
+		}
+
 	} else {
 		r.outgoingChannel <- msg
 	}
@@ -89,23 +98,34 @@ loop:
 			r.ensureConnection()
 			b, err := json.Marshal(msg)
 			if err != nil {
-				logrus.WithError(err).Warn("bad soccerdash format")
+				if r.Logger != nil {
+					r.Logger.WithError(err).Warn("bad soccerdash format")
+				}
 			}
 
-			logrus.WithField("content", string(b)).Debug("sending content")
+			if r.Logger != nil {
+				logrus.WithField("content", string(b)).Trace("sending content")
+			}
+
 			_ = r.conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
 
 			_, err = r.conn.Write(b)
 			if err != nil {
 				r.conn = nil
-				logrus.WithError(err).Debug("soccerdash server lost")
+				if r.Logger != nil {
+					logrus.WithError(err).Trace("soccerdash server lost")
+				}
+
 				break // break select
 			}
 			_ = r.conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
 			_, err = r.conn.Write([]byte("\n"))
 			if err != nil {
 				r.conn = nil
-				logrus.WithError(err).Debug("soccerdash server lost")
+				if r.Logger != nil {
+					logrus.WithError(err).Trace("soccerdash server lost")
+				}
+
 				break // break select
 			}
 		}
