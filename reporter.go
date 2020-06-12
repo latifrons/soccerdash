@@ -44,7 +44,7 @@ func (r *Reporter) ensureConnection() {
 		r.conn, err = net.DialTimeout("tcp", r.TargetAddress, time.Millisecond*5000)
 		if err == nil {
 			if r.Logger != nil {
-				logrus.Trace("connected to ws server")
+				r.Logger.Trace("connected to ws server")
 			}
 			break
 		}
@@ -69,11 +69,14 @@ func (r *Reporter) Report(key string, value interface{}, global bool) {
 
 	if len(r.outgoingChannel) > r.BufferSize {
 		if r.Logger != nil {
-			r.Logger.Warn("soccer dash message drop because of too many messages.")
+			r.Logger.Debug("soccer dash message drop because of too many messages.")
 		}
 
 	} else {
-		r.outgoingChannel <- msg
+		select {
+		case r.outgoingChannel <- msg:
+		default:
+		}
 	}
 }
 
@@ -104,7 +107,7 @@ loop:
 			}
 
 			if r.Logger != nil {
-				logrus.WithField("content", string(b)).Trace("sending content")
+				r.Logger.WithField("content", string(b)).Trace("sending content")
 			}
 
 			_ = r.conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
@@ -113,7 +116,7 @@ loop:
 			if err != nil {
 				r.conn = nil
 				if r.Logger != nil {
-					logrus.WithError(err).Trace("soccerdash server lost")
+					r.Logger.WithError(err).Trace("soccerdash server lost")
 				}
 
 				break // break select
@@ -123,7 +126,7 @@ loop:
 			if err != nil {
 				r.conn = nil
 				if r.Logger != nil {
-					logrus.WithError(err).Trace("soccerdash server lost")
+					r.Logger.WithError(err).Trace("soccerdash server lost")
 				}
 
 				break // break select
